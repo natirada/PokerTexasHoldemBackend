@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 
 const User = require('../models/user');
+const io = require('../../socket');
 
 exports.user_signup = (req, res, next) => {
 	const errors = validationResult(req);
@@ -48,8 +49,12 @@ exports.user_signup = (req, res, next) => {
 };
 
 exports.user_login = (req, res, next) => {
+	console.log('body', req.body);
+	console.log('username', req.body.username);
+	console.log('password', req.body.password);
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
+		console.log('errors', errors);
 		return res.status(422).json({ errors: errors.array() });
 	}
 
@@ -81,6 +86,7 @@ exports.user_login = (req, res, next) => {
 								expiresIn: '1h',
 							}
 						);
+						io.getIO().emit('signin', { action: 'push from backend' });
 						res.status(200).json({
 							message: 'login suceess',
 							token,

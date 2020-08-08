@@ -10,3 +10,9 @@ server.on('listening', function () {
 });
 
 server.listen(port);
+
+const io = require('./socket').init(server);
+
+io.on('connection', socket => {
+	console.log('Clinet connection');
+});
