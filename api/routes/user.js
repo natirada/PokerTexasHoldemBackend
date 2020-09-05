@@ -28,4 +28,6 @@ router.get(
 	UserController.user_rest_password
 );
 
+router.get('/test', UserController.test);
+
 module.exports = router;

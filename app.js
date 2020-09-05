@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const userRoutes = require('./api/routes/user');
+const gameRoutes = require('./api/routes/game');
 
 mongoose.connect(
 	`mongodb+srv://netanel:${process.env.MONGO_ATLAS_PASSWORD}@node-rest-api-vx9n6.mongodb.net/test?retryWrites=true&w=majority`,
@@ -30,6 +31,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/user', userRoutes);
+app.use('/game', gameRoutes);
 
 app.use((req, res, next) => {
 	const error = new Error('Not Found.');

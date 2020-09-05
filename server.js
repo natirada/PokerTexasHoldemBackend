@@ -1,5 +1,6 @@
 const http = require('http');
 const app = require('./app');
+const socket = require('./socket/socket');
 
 const port = process.env.PORT || 4005;
 
@@ -11,8 +12,6 @@ server.on('listening', function () {
 
 server.listen(port);
 
-const io = require('./socket').init(server);
-
-io.on('connection', socket => {
-	console.log('Clinet connection');
-});
+//const io = require('./socket/socket').init(server);
+socket.init(server);
+socket.connection();
