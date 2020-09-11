@@ -1,15 +1,53 @@
-const users = [];
+//  users = {
+// 	roomNumber ('5656'): {
+// 		poker: new Poker(),
+// 		users: [ {
+// 			socketId,
+// 			playerId,
+// 			userName
+
+// 		},...]
+// 	}
+// 	.....
+// }
+const users = {};
+
+const Poker = require('../../game/poker');
 
 // Join user to chat
 function userJoin(dataPlayer) {
-	users.push(dataPlayer);
+	try {
+		if (users[dataPlayer.room]) {
+			const isNotExsits =
+				users[dataPlayer.room].users.findIndex(
+					player => player.playerId === dataPlayer.playerId
+				) === -1;
+			if (isNotExsits) {
+				users[dataPlayer.room].users.push(dataPlayer);
+				users[dataPlayer.room].poker.addPlayer(dataPlayer.playerId);
+			}
+		} else {
+			users[dataPlayer.room] = {
+				users: [dataPlayer],
+				poker: new Poker(),
+			};
+			users[dataPlayer.room].poker.addPlayer(dataPlayer.playerId);
+		}
 
-	return dataPlayer;
+		return dataPlayer;
+	} catch (error) {
+		console.log(error);
+	}
 }
 
 // Get current user
 function getCurrentUser(id) {
-	return users.find(user => user.id === id);
+	const currUser = Object.values(users)
+		.reduce((acc, curr) => {
+			return [...acc, ...curr.users];
+		}, [])
+		.find(user => user.socketId === id);
+	return currUser;
 }
 
 // User leaves chat
@@ -23,7 +61,8 @@ function userLeave(id) {
 
 // Get room users
 function getRoomUsers(room) {
-	return users.filter(user => user.room === room);
+	//	return users.filter(user => user.room === room);
+	return users[room];
 }
 
 // Get ALL  users

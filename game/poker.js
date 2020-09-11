@@ -100,16 +100,3 @@ module.exports = class Poker {
 function getRandomInt() {
 	return Math.floor(Math.random() * Math.floor(51));
 }
-
-// const poker = new Poker();
-// poker.addPlayer(1);
-// poker.addPlayer(2);
-// poker.addPlayer(3);
-
-// poker.newRound();
-// poker.setScore();
-// poker.players.forEach(p => {
-// 	console.log('cards', p.cards);
-// });
-// console.log('===================================================');
-// console.log(poker);

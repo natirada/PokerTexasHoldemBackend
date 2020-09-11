@@ -5,7 +5,7 @@ const {
 	getRoomUsers,
 	getAllUsers,
 } = require('./utilis/users');
-const Poker = require('../game/poker');
+
 let io;
 module.exports = {
 	init: httpServer => {
@@ -26,7 +26,7 @@ module.exports = {
 				socket.on('joinRoom', dataPlayer => {
 					const user = userJoin({ ...dataPlayer, socketId: socket.id });
 
-					console.log(getAllUsers());
+					console.log('user joi', user);
 
 					socket.join(user.room);
 
@@ -34,15 +34,25 @@ module.exports = {
 					socket.emit('message', 'Welcome to ChatCord!');
 
 					// Broadcast when a user connects
+
 					socket.broadcast
 						.to(user.room)
-						.emit('message', 'user has joined the chat');
+						.emit('newRound', 'user has joined the chat');
 
-					// Send users and room info
-					io.to(user.room).emit('roomUsers', {
-						room: user.room,
-						users: getRoomUsers(user.room),
-					});
+					const roomsUsers = getRoomUsers(user.room);
+
+					console.log('roomsUsers.users.length', roomsUsers.users.length);
+
+					if (roomsUsers.users.length === 2) {
+						// Send users and room info
+						roomsUsers.poker.newRound();
+						roomsUsers.poker.setScore();
+						io.to(user.room).emit('roomUsers', {
+							flop: roomsUsers.poker.flop,
+							players: roomsUsers.poker.players,
+						});
+						startGame(user.room);
+					}
 				});
 
 				// Listen for move
@@ -51,6 +61,23 @@ module.exports = {
 					console.log('on play user', user);
 					io.to(user.room).emit('play', { userName: user.username, msg });
 				});
+
+				const startGame = roomId => {
+					const room = getRoomUsers(roomId);
+
+					io.to(roomId).emit('turn', {
+						playerIdTurn: room.users[0].playerId,
+					});
+					room.users.forEach((player, index) => {
+						if (index > 0) {
+							const setTimeoutId = setTimeout(() => {
+								io.to(roomId).emit('turn', {
+									playerIdTurn: player.playerId,
+								});
+							}, 1000 * 10 * index);
+						}
+					});
+				};
 			});
 		}
 	},

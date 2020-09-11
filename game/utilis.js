@@ -169,3 +169,16 @@ exports.utilis = {
 		return maxKey;
 	},
 };
+
+// const Poker = require('./poker');
+
+// const poker = new Poker();
+// poker.addPlayer(1);
+// poker.addPlayer(2);
+// poker.addPlayer(3);
+
+// poker.newRound();
+// poker.setScore();
+
+// console.log('===================================================');
+// console.log(poker.players);
