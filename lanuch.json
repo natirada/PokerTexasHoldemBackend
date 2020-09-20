@@ -5,7 +5,13 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
-			"program": "${workspaceRoot}/server.js"
+			"program": "${workspaceRoot}/game/poker.js"
+		},
+		{
+			"type": "node",
+			"request": "test launch",
+			"name": "Launch Program",
+			"program": "${workspaceRoot}/game/poker.js"
 		}
 	]
 }

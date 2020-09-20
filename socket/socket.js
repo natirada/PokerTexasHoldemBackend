@@ -43,7 +43,7 @@ module.exports = {
 
 					console.log('roomsUsers.users.length', roomsUsers.users.length);
 
-					if (roomsUsers.users.length === 2) {
+					if (roomsUsers.users.length >= 2) {
 						// Send users and room info
 						roomsUsers.poker.newRound();
 						roomsUsers.poker.setScore();
@@ -65,18 +65,26 @@ module.exports = {
 				const startGame = roomId => {
 					const room = getRoomUsers(roomId);
 
-					io.to(roomId).emit('turn', {
-						playerIdTurn: room.users[0].playerId,
+					room.poker.emitter.on('cahngePlayer', playerTurn => {
+						console.log('the turn now is for this player: --->', playerTurn);
+						io.to(roomId).emit('turn', {
+							playerIdTurn: playerTurn.playerId,
+						});
 					});
-					room.users.forEach((player, index) => {
-						if (index > 0) {
-							const setTimeoutId = setTimeout(() => {
-								io.to(roomId).emit('turn', {
-									playerIdTurn: player.playerId,
-								});
-							}, 1000 * 10 * index);
-						}
-					});
+
+					room.poker.startRound();
+					// io.to(roomId).emit('turn', {
+					// 	playerIdTurn: room.users[0].playerId,
+					// });
+					// room.users.forEach((player, index) => {
+					// 	if (index > 0) {
+					// 		const setTimeoutId = setTimeout(() => {
+					// 			io.to(roomId).emit('turn', {
+					// 				playerIdTurn: player.playerId,
+					// 			});
+					// 		}, 1000 * 10 * index);
+					// 	}
+					// });
 				};
 			});
 		}

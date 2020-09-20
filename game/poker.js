@@ -1,4 +1,5 @@
-const Cards = require('./constans');
+const EventEmitter = require('events');
+const { cardsNames, actionsType } = require('./constans');
 const { utilis } = require('./utilis');
 
 // const floop = [];
@@ -18,17 +19,104 @@ const { utilis } = require('./utilis');
 
 module.exports = class Poker {
 	constructor() {
-		this.allCards = Cards.map(card => ({
+		this.allCards = cardsNames.map(card => ({
 			isSeleted: false,
 			...card,
 		}));
-		this.players = [];
+		this.players = []; //{id: 1....},{id:2},{}
 		this.flop = [];
+		this.turnPlayer = { index: -1, playerId: -1 };
+		this.setTimeoutId = null;
+		this.moneyOnTable = 0;
+		this.roundMoneyOnTable = 0;
+		this.emitter = new EventEmitter();
 	}
+
+	startRound = () => {
+		this.roundMoneyOnTable = 50;
+		this.nextTurn();
+	};
+
+	action = payload => {
+		//payload ={playerId,action,}
+		if (payload.playerId !== this.turnPlayer.playerId) return;
+
+		switch (payload.action) {
+			case actionsType.CHEEK:
+				this.cheak(payload);
+				//cheak
+				break;
+			case actionsType.FOLD:
+				this.fold(payload);
+				//fold
+				break;
+			case actionsType.RASIE:
+				this.raise(payload);
+				//raise
+				break;
+
+			default:
+				break;
+		}
+	};
+
+	cheak = payload => {
+		const player = this.players.find(player => player.id === payload.playerId);
+		if (player) {
+			player.money -= this.roundMoneyOnTable;
+			this.nextTurn();
+		}
+	};
+
+	fold = payload => {};
+
+	raise = payload => {
+		const player = this.player.find(player => player.id === payload.playerId);
+		player.money -= payload.raise;
+		this.roundMoneyOnTable += payload.raise;
+		this.nextTurn();
+	};
+
+	nextTurn = () => {
+		const { index, playerId } = this.turnPlayer;
+
+		if (index < this.players.length) {
+			clearTimeout(this.setTimeoutId);
+			if (index + 1 >= this.players.length) {
+				this.finshRound();
+				return;
+			}
+			this.turnPlayer = {
+				index: index + 1,
+				playerId: this.players[index + 1].id,
+			};
+
+			this.emitter.emit('cahngePlayer', this.turnPlayer);
+			//	console.log('the turn now for ======>', this.turnPlayer);
+
+			this.setTimeoutId = setTimeout(() => {
+				this.nextTurn();
+			}, 1000 * 10);
+		} else {
+			this.finshRound();
+		}
+	};
+
+	finshRound = () => {
+		this.moneyOnTable += this.roundMoneyOnTable;
+		this.roundMoneyOnTable = 50;
+		console.log('***finshRound****');
+	};
 
 	addPlayer = playerId => {
 		if (this.players.length < 4)
-			this.players.push({ id: playerId, score: 0, cards: [], maxCard: null });
+			this.players.push({
+				id: playerId,
+				score: 0,
+				cards: [],
+				maxCard: null,
+				money: 1000,
+			});
 	};
 	newRound = () => {
 		this.allCards.forEach(card => {
@@ -61,6 +149,8 @@ module.exports = class Poker {
 			}
 		});
 	};
+
+	start = () => {};
 
 	setScore = () => {
 		try {
@@ -100,3 +190,17 @@ module.exports = class Poker {
 function getRandomInt() {
 	return Math.floor(Math.random() * Math.floor(51));
 }
+
+// const poker = new Poker();
+// poker.emitter.on('cahngePlayer', playerTurn => {
+// 	console.log('the turn now is for this player: --->', playerTurn);
+// });
+
+// poker.addPlayer(1);
+// poker.addPlayer(2);
+// poker.addPlayer(3);
+
+// poker.newRound();
+// poker.setScore();
+
+// poker.startRound();

@@ -1,4 +1,4 @@
-module.exports = pokHandRankings = [
+const pokHandRankings = [
 	{
 		type: 'High_Card',
 		score: 0,
@@ -41,7 +41,7 @@ module.exports = pokHandRankings = [
 	},
 ];
 
-module.exports = cardsNames = [
+const cardsNames = [
 	{ name: '10C', symbol: 'C', number: 10 },
 	{ name: '10D', symbol: 'D', number: 10 },
 	{ name: '10H', symbol: 'H', number: 10 },
@@ -95,3 +95,11 @@ module.exports = cardsNames = [
 	{ name: 'QH', symbol: 'H', number: 12 },
 	{ name: 'QS', symbol: 'S', number: 12 },
 ];
+
+const actionsType = {
+	FOLD: 'FOLD',
+	CHEEK: 'CHEEK',
+	RASIE: 'RASIE',
+};
+
+module.exports = { pokHandRankings, cardsNames, actionsType };

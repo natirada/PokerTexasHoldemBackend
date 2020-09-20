@@ -13,7 +13,6 @@ exports.utilis = {
 		);
 		const sortCards = cardFilter.sort((a, b) => a.number - b.number);
 
-		console.log('s', sortCards);
 		if (sortCards.length < 5) return false;
 		for (let i = 0; i < sortCards.length; i++) {
 			if (i === 0 && sortCards[i].number !== 1) {
@@ -49,7 +48,6 @@ exports.utilis = {
 			acc[number] = acc[number] ? acc[number] + 1 : 1;
 			return acc;
 		}, {});
-		console.log('===>reduceAllCards getIsFourOfAKind', reduceAllCards);
 		const indexOccursCounter = Object.values(reduceAllCards).findIndex(
 			el => el == 4
 		);
@@ -63,7 +61,6 @@ exports.utilis = {
 			acc[number] = acc[number] ? acc[number] + 1 : 1;
 			return acc;
 		}, {});
-		console.log('===>reduceAllCards getIsFullHouse ', reduceAllCards);
 		const indexOccursThree = Object.values(reduceAllCards).findIndex(
 			el => el == 3
 		);
