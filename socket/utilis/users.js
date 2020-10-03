@@ -51,12 +51,17 @@ function getCurrentUser(id) {
 }
 
 // User leaves chat
-function userLeave(id) {
-	const index = users.findIndex(user => user.id === id);
+function userLeave(roomId, playerId) {
+	const index = users[roomId].users.findIndex(
+		user => user.playerId === playerId
+	);
 
 	if (index !== -1) {
-		return users.splice(index, 1)[0];
+		users[roomId].poker.removePlayer(playerId);
+		users[roomId].users.splice(index, 1);
+		console.log('users.length', users[roomId].users.length);
 	}
+	return users;
 }
 
 // Get room users

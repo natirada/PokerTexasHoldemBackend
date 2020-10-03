@@ -24,68 +24,80 @@ module.exports = {
 				console.log('connection');
 
 				socket.on('joinRoom', dataPlayer => {
-					const user = userJoin({ ...dataPlayer, socketId: socket.id });
+					try {
+						const user = userJoin({ ...dataPlayer, socketId: socket.id });
 
-					console.log('user joi', user);
+						console.log('user joi', user);
 
-					socket.join(user.room);
+						socket.join(user.room);
 
-					// Welcome current user
-					socket.emit('message', 'Welcome to ChatCord!');
+						// Welcome current user
+						socket.emit('message', 'Welcome to ChatCord!');
 
-					// Broadcast when a user connects
+						// Broadcast when a user connects
 
-					socket.broadcast
-						.to(user.room)
-						.emit('newRound', 'user has joined the chat');
+						socket.broadcast
+							.to(user.room)
+							.emit('newRound', 'user has joined the chat');
 
-					const roomsUsers = getRoomUsers(user.room);
+						const roomsUsers = getRoomUsers(user.room);
 
-					console.log('roomsUsers.users.length', roomsUsers.users.length);
+						console.log('roomsUsers.users.length', roomsUsers.users.length);
 
-					if (roomsUsers.users.length >= 2) {
-						// Send users and room info
-						roomsUsers.poker.newRound();
-						roomsUsers.poker.setScore();
-						io.to(user.room).emit('roomUsers', {
-							flop: roomsUsers.poker.flop,
-							players: roomsUsers.poker.players,
-						});
-						startGame(user.room);
+						if (roomsUsers.users.length === 2) {
+							// Send users and room info
+							roomsUsers.poker.startNewHands();
+							roomsUsers.poker.setScore();
+							io.to(user.room).emit('roomUsers', {
+								flop: roomsUsers.poker.flop,
+								players: roomsUsers.poker.players,
+							});
+							startGame(user.room);
+						}
+					} catch (error) {
+						console.log('error', error);
 					}
 				});
 
 				// Listen for move
-				socket.on('play', msg => {
+				socket.on('play', payload => {
 					const user = getCurrentUser(socket.id);
-					console.log('on play user', user);
-					io.to(user.room).emit('play', { userName: user.username, msg });
+					const room = getRoomUsers(user.room);
+					room.poker.action(payload);
+					//	io.to(user.room).emit('play', { userName: user.username, msg });
 				});
 
 				const startGame = roomId => {
 					const room = getRoomUsers(roomId);
 
 					room.poker.emitter.on('cahngePlayer', playerTurn => {
-						console.log('the turn now is for this player: --->', playerTurn);
 						io.to(roomId).emit('turn', {
 							playerIdTurn: playerTurn.playerId,
 						});
 					});
 
+					room.poker.emitter.on('roundEnded', data => {
+						io.to(roomId).emit('roundEnded', data);
+					});
+					room.poker.emitter.on('playerAction', payload => {
+						console.log('playerAction payload:', payload);
+
+						io.to(roomId).emit('playerAction', payload);
+					});
+
 					room.poker.startRound();
-					// io.to(roomId).emit('turn', {
-					// 	playerIdTurn: room.users[0].playerId,
-					// });
-					// room.users.forEach((player, index) => {
-					// 	if (index > 0) {
-					// 		const setTimeoutId = setTimeout(() => {
-					// 			io.to(roomId).emit('turn', {
-					// 				playerIdTurn: player.playerId,
-					// 			});
-					// 		}, 1000 * 10 * index);
-					// 	}
-					// });
 				};
+
+				socket.on('exitRoom', data => {
+					try {
+						const user = getCurrentUser(socket.id);
+						const { room, playerId } = user;
+						const usersUpdate = userLeave(room, playerId);
+						console.log('****!!!usersUpdate after delete*', usersUpdate);
+					} catch (error) {
+						console.log('error');
+					}
+				});
 			});
 		}
 	},

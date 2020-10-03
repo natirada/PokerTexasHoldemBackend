@@ -30,6 +30,7 @@ module.exports = class Poker {
 		this.moneyOnTable = 0;
 		this.roundMoneyOnTable = 0;
 		this.emitter = new EventEmitter();
+		this.counterRoundHands = 0;
 	}
 
 	startRound = () => {
@@ -60,10 +61,27 @@ module.exports = class Poker {
 		}
 	};
 
+	startNewHands = () => {
+		this.allCards.forEach(card => {
+			card.isSeleted = false;
+		});
+		this.initialFlop();
+		this.initialPlayerCards();
+		this.counterRoundHands = 0;
+	};
+
+	endHands = () => {};
+
 	cheak = payload => {
 		const player = this.players.find(player => player.id === payload.playerId);
 		if (player) {
-			player.money -= this.roundMoneyOnTable;
+			player.money -= this.roundMoneyOnTable; //updatDB
+			const { id: plyaerId, money } = player;
+			this.emitter.emit('playerAction', {
+				plyaerId,
+				money,
+				checkMoney: this.roundMoneyOnTable,
+			});
 			this.nextTurn();
 		}
 	};
@@ -96,20 +114,32 @@ module.exports = class Poker {
 
 			this.setTimeoutId = setTimeout(() => {
 				this.nextTurn();
-			}, 1000 * 10);
+			}, 1000 * 20);
 		} else {
 			this.finshRound();
 		}
 	};
 
 	finshRound = () => {
+		this.counterRoundHands += 1;
 		this.moneyOnTable += this.roundMoneyOnTable;
 		this.roundMoneyOnTable = 50;
+		this.emitter.emit('roundEnded', {});
+		this.turnPlayer = { index: -1, playerId: -1 };
+		setTimeout(() => {
+			console.log('this.counterRoundHands', this.counterRoundHands);
+			if (this.counterRoundHands < 4) this.startRound();
+			else this.playerWiner();
+		}, 1000);
 		console.log('***finshRound****');
 	};
 
+	playerWiner = () => {
+		console.log('playerWiner');
+	};
+
 	addPlayer = playerId => {
-		if (this.players.length < 4)
+		if (this.players.length < 2)
 			this.players.push({
 				id: playerId,
 				score: 0,
@@ -118,13 +148,15 @@ module.exports = class Poker {
 				money: 1000,
 			});
 	};
-	newRound = () => {
-		this.allCards.forEach(card => {
-			card.isSeleted = false;
-		});
-		this.initialFlop();
-		this.initialPlayerCards();
+
+	removePlayer = playerId => {
+		const indexPlayer = this.players.findIndex(
+			player => player.id === playerId
+		);
+		if (indexPlayer !== -1) this.players.splice(indexPlayer, 1);
 	};
+
+	newRound = () => {};
 
 	initialFlop = () => {
 		while (this.flop.length <= 4) {
@@ -204,3 +236,8 @@ function getRandomInt() {
 // poker.setScore();
 
 // poker.startRound();
+
+// setTimeout(() => {
+// 	poker.action({ playerId: 1, action: 'CHEEK' });
+// 	poker.addPlayer(4);
+// }, 2000);
