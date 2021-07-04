@@ -39,6 +39,8 @@ module.exports = class Poker {
 	};
 
 	action = payload => {
+		console.log('action payload', payload);
+
 		//payload ={playerId,action,}
 		if (payload.playerId !== this.turnPlayer.playerId) return;
 
@@ -76,9 +78,9 @@ module.exports = class Poker {
 		const player = this.players.find(player => player.id === payload.playerId);
 		if (player) {
 			player.money -= this.roundMoneyOnTable; //updatDB
-			const { id: plyaerId, money } = player;
+			const { id: playerId, money } = player;
 			this.emitter.emit('playerAction', {
-				plyaerId,
+				playerId,
 				money,
 				checkMoney: this.roundMoneyOnTable,
 			});
@@ -89,9 +91,22 @@ module.exports = class Poker {
 	fold = payload => {};
 
 	raise = payload => {
-		const player = this.player.find(player => player.id === payload.playerId);
-		player.money -= payload.raise;
-		this.roundMoneyOnTable += payload.raise;
+		const { raise = 0, playerId } = payload;
+		const player = this.players.find(player => player.id === playerId);
+		if (!player) {
+			this.nextTurn();
+			return;
+		}
+
+		player.money -= raise;
+		this.roundMoneyOnTable += raise;
+
+		const { money } = player;
+		this.emitter.emit('playerAction', {
+			playerId,
+			money,
+			checkMoney: raise,
+		});
 		this.nextTurn();
 	};
 
